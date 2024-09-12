@@ -148,7 +148,7 @@ __int64 __fastcall abcdf(__int64 a1, int a2, unsigned int a3, int a4,__int64 a5,
     return result;
 }
 
-hookfunc HookName = hookfunc(moduleBase + Steam::Offsets::execCommand); //makes this to be a function to hook
+hookfunc HookName = hookfunc(moduleBase + Steam::Offsets::execCommand);
 maybeExec MaybeExec = maybeExec(moduleBase + Steam::Offsets::maybeExec);
 maybeExec origMBExec = nullptr;
 
@@ -157,12 +157,11 @@ __int64 maybeExecCommand(__int64 a1, int a2, unsigned int a3, ...)
     std::cout << "[DotaHuy] Hooked maybeexec! a1: " << a1 << " a2: " << a2 << " a3: " << a3 << std::endl;
 
     va_list args;
-    va_start(args, a3);  // Ініціалізація списку змінних аргументів
+    va_start(args, a3);
 
-    // Передача всіх аргументів до origMBExec
     __int64 result = origMBExec(a1, a2, a3, args);
 
-    va_end(args);  // Завершення роботи зі списком аргументів
+    va_end(args);
     return result;
 }
 
@@ -171,7 +170,7 @@ bool init_hook = false;
 
 void StartHooks() {
 
-    MH_EnableHook(MH_ALL_HOOKS); //enables the specified hook
+    MH_EnableHook(MH_ALL_HOOKS);
 }
 
 
