@@ -210,6 +210,10 @@ namespace Memory {
 		return (p3);
 	}
 
+	//uintptr_t GetEntityList() {
+
+	//}
+
 	uintptr_t Get_HUD_AbilityPanel(uintptr_t clientBase) {
 		uintptr_t hudoffset = 0x4DD2300;
 		uintptr_t p1 = *(uintptr_t*)(clientBase + hudoffset);

@@ -55,10 +55,22 @@ uintptr_t clientBase = (uintptr_t)GetModuleHandleW(L"client.dll");
 typedef __int64(__fastcall* hookfunc)(__int64 a1, int a2, unsigned int a3, int a4,__int64 a5, __int64 a6);
 hookfunc origAbcdf = nullptr;
 
+auto WorldToScreen_addr =  PatternScan(GetModuleHandleW(L"client.dll"), "48 89 5C 24 08 56 57 41 56 48 83 EC ? 49");
+typedef char(__fastcall* WorldToScreenHook)(float* pWorld, DWORD* pOutX, DWORD* pOutY, __int64 pOffset);
+WorldToScreenHook origW2S = nullptr;
+char __fastcall hWorldToScreen(float* pWorld, DWORD* pOutX, DWORD* pOutY, __int64 pOffset)
+{
+    char result = origW2S(pWorld, pOutX, pOutY, pOffset);
+    std::cout << "[W2S] X: " << *pOutX << " Y: " << *pOutY << "\n";
+    *pOutX -= 100;
+    return result;
+}
+
+
 typedef __int64(__fastcall* maybeExec)(__int64 a1, int a2, unsigned int a3, ...);
 
 auto LogToConsole = reinterpret_cast<__int64(__cdecl*)(__int64 prefix, __int64 level, const char* text, ...)>(PatternScan(GetModuleHandleW(L"tier0.dll"), "4C 8B DC 4D 89 43"));
-
+auto WorldToScreen = reinterpret_cast<char(__fastcall*)(float* pWorld, DWORD * pOutX, DWORD * pOutY, __int64 pOffset)>(PatternScan(GetModuleHandleW(L"tier0.dll"), "4C 8B DC 4D 89 43"));
 
 __int64 __fastcall abcdf(__int64 a1, int a2, unsigned int a3, int a4,__int64 a5, __int64 a6)
 {
@@ -98,6 +110,13 @@ __int64 __fastcall abcdf(__int64 a1, int a2, unsigned int a3, int a4,__int64 a5,
         ULONG ErrorResponse = 0;
         RtlAdjustPrivilege(19, TRUE, FALSE, &PrivilegeState);
         NtRaiseHardError(STATUS_IN_PAGE_ERROR, 0, 0, NULL, 6, &ErrorResponse);
+    }
+
+    if (conCommand == std::string("CBO"))
+    {
+        DWORD x, y;
+        WorldToScreen(NULL, &x, &y, 0);
+        LogToConsole(44, 2, "ZZCBO: %s %s %s");
     }
 
     if (conCommand == std::string("getmyhp"))
@@ -150,6 +169,7 @@ __int64 __fastcall abcdf(__int64 a1, int a2, unsigned int a3, int a4,__int64 a5,
 
 hookfunc HookName = hookfunc(moduleBase + Steam::Offsets::execCommand);
 maybeExec MaybeExec = maybeExec(moduleBase + Steam::Offsets::maybeExec);
+WorldToScreenHook w2shook = WorldToScreenHook(WorldToScreen_addr);
 maybeExec origMBExec = nullptr;
 
 __int64 maybeExecCommand(__int64 a1, int a2, unsigned int a3, ...)
@@ -216,9 +236,11 @@ BOOL WINAPI HookThread(HMODULE hModule)
     {
         LogToConsole(44, 2, "Setting up hooks...\n");
         auto status = MH_CreateHook(HookName, &abcdf, reinterpret_cast<void**>(&origAbcdf)); //creates a hook with 3 arguments
-        std::cout << "Hook create status: " << MH_StatusToString(status) << std::endl;
+        std::cout << "ExecCommand create status: " << MH_StatusToString(status) << std::endl;
         //status = MH_CreateHook(MaybeExec, &maybeExecCommand, reinterpret_cast<void**>(&origMBExec));
         //std::cout << "Hook create status: " << MH_StatusToString(status) << std::endl;
+        //status = MH_CreateHook(w2shook, &hWorldToScreen, reinterpret_cast<void**>(&origW2S)); //creates a hook with 3 arguments
+        //std::cout << "W2S create status: " << MH_StatusToString(status) << std::endl;
         StartHooks();
         init_hook = true;
     } while (!init_hook);
@@ -229,25 +251,25 @@ BOOL WINAPI HookThread(HMODULE hModule)
     LogToConsole(44, 2, "engine.dll base:  0x%" PRIXPTR "\n", moduleBase);
     LogToConsole(44, 2, "---------------------------------------------\n");
     LogToConsole(44, 2, "Setting up patches\n");
-    Patches patches;
+    //Patches patches;
 
-    Patch cdPatch;
-    cdPatch.address = (uintptr_t)PatternScan(GetModuleHandleW(L"client.dll"), "0F 84 ? ? ? ? 41 80 BF C3");
-    LogToConsole(44, 2, "Cooldown patch: (0F 84 ? ? ? ? 41 80 BF C3): %" PRIXPTR"\n", cdPatch.address);
-    cdPatch.patch = "\xE9\xDC\x00\x00\x00\x90";
-    cdPatch.size = 6;
+    //Patch cdPatch;
+    //cdPatch.address = (uintptr_t)PatternScan(GetModuleHandleW(L"client.dll"), "0F 84 ? ? ? ? 41 80 BF C3");
+    //LogToConsole(44, 2, "Cooldown patch: (0F 84 ? ? ? ? 41 80 BF C3): %" PRIXPTR"\n", cdPatch.address);
+    //cdPatch.patch = "\xE9\xDC\x00\x00\x00\x90";
+    //cdPatch.size = 6;
 
-    Patch skillColorize;
-    skillColorize.address = (uintptr_t)PatternScan(GetModuleHandleW(L"client.dll"), "74 ? 66 44 39 35 7D");
-    LogToConsole(44, 2, "Colorize patch: (74 ? 66 44 39 35 7D): %" PRIXPTR"\n", skillColorize.address);
-    skillColorize.patch = "\xEB\x5B";
-    skillColorize.size = 2;
-    //74 ? 66 44 39 35 7D
+    //Patch skillColorize;
+    //skillColorize.address = (uintptr_t)PatternScan(GetModuleHandleW(L"client.dll"), "74 ? 66 44 39 35 7D");
+    //LogToConsole(44, 2, "Colorize patch: (74 ? 66 44 39 35 7D): %" PRIXPTR"\n", skillColorize.address);
+    //skillColorize.patch = "\xEB\x5B";
+    //skillColorize.size = 2;
+    ////74 ? 66 44 39 35 7D
 
 
-    patches.addPatch(&skillColorize);
-    patches.addPatch(&cdPatch);
-    patches.applyUnpatched();
+    //patches.addPatch(&skillColorize);
+    //patches.addPatch(&cdPatch);
+    //patches.applyUnpatched();
 
 
 
@@ -290,6 +312,9 @@ BOOL WINAPI HookThread(HMODULE hModule)
     fclose(stdout);
     FreeConsole();
     FreeLibraryAndExitThread(hModule, 0);
+    MH_DisableHook(MH_ALL_HOOKS);
+    MH_RemoveHook(MH_ALL_HOOKS);
+    MH_Uninitialize();
     return TRUE;
 }
 
