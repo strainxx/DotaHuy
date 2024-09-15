@@ -32,5 +32,8 @@
     <ClInclude Include="Patches.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gui.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

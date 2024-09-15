@@ -5,7 +5,7 @@
 //#include "source2sdk/server/CBaseEntity.hpp"
 #include "source2sdk/client/C_BaseEntity.hpp"
 #include "Memoria.hpp"
-//#include "server/CBaseEntity.hpp"
+#include "source2sdk/client/C_DOTAPlayerController.hpp"
 
 
 //class CEntityInstance
@@ -176,6 +176,8 @@
 //	float m_fpHealthRegen; //0x099C
 //	char pad_09A0[560]; //0x09A0
 //}; //Size: 0x0BD0
+
+auto WorldToScreen = reinterpret_cast<char(__fastcall*)(float* pWorld, DWORD * pOutX, DWORD * pOutY, __int64 pOffset)>(PatternScan(GetModuleHandleW(L"client.dll"), "48 89 5C 24 08 56 57 41 56 48 83 EC ? 49"));
 
 class CDOTA_Hud_HealthMana
 {

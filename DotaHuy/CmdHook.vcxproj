@@ -156,6 +156,7 @@
     <ClCompile Include="Patches.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="gui.hpp" />
     <ClInclude Include="Memoria.hpp" />
     <ClInclude Include="Patches.hpp" />
     <ClInclude Include="Utils.hpp" />
